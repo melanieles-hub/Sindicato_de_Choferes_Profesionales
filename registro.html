@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Inscripción - Sindicato Tungurahua</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sindicato de Choferes de Tungurahua</title>
+    
+    <link rel="icon" href="escudo.ico" type="image/x-icon">
+    
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+    <header>
+        <nav class="main-nav">
+            <div class="logo-area">
+                <img src="escudo.ico" alt="Escudo" class="escudo-img">
+                <span class="brand-text">Sindicato Tungurahua</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html">Inicio</a></li>
+                <li><a href="cursos.html">Volver a Cursos</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="registro-section">
+        <div class="form-container">
+            <div class="form-header">
+                <h2>Formulario de Pre-Inscripción</h2>
+                <p>Estás solicitando cupo para: <strong id="curso-seleccionado" style="color: #3b82f6;"></strong></p>
+            </div>
+
+<form action="procesar.php" method="POST">
+
+    <div class="input-group">
+        <label>Tipo de Licencia</label>
+        <select name="curso_elegido" id="curso_input" required>
+            <option value="">Seleccione una licencia</option>
+            <option value="B">Licencia Tipo C</option>
+            <option value="D">Licencia Tipo B</option>
+            <option value="G">Licencia Tipo D</option>
+        </select>
+    </div>
+
+    <div class="input-group">
+        <label>Nombre Completo</label>
+        <input type="text" name="nombre" required>
+    </div>
+
+    <div class="input-group">
+        <label>Cédula</label>
+        <input type="text" name="cedula" required>
+    </div>
+
+    <div class="input-group">
+        <label>Teléfono</label>
+        <input type="tel" name="telefono" required>
+    </div>
+
+    <div class="input-group">
+        <label>Correo</label>
+        <input type="email" name="email" required>
+    </div>
+
+    <button type="submit" class="btn-primary full-width">
+        Enviar Solicitud
+    </button>
+</form>
+
+<script>
+    // Este script llena el campo oculto con el curso que viene en la URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const curso = urlParams.get('curso');
+    document.getElementById('curso_seleccionado').innerText = "Licencia " + curso;
+    document.getElementById('curso_input').value = curso; // Pasa el valor al formulario
+</script>
+        </div>
+    </section>
+</body>
+</html>

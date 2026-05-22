@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Sistema de Pagos - Sindicato Tungurahua</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<!-- SELECT2 -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, Helvetica, sans-serif;
+}
+
+body{
+    background:#f1f5f9;
+    padding:40px;
+}
+
+.container{
+    max-width:1000px;
+    margin:auto;
+    background:white;
+    padding:30px;
+    border-radius:15px;
+    box-shadow:0 5px 20px rgba(0,0,0,0.1);
+}
+
+h1{
+    text-align:center;
+    margin-bottom:30px;
+    color:#1e3a8a;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+}
+
+.input-group{
+    margin-bottom:20px;
+}
+
+.input-group label{
+    display:block;
+    margin-bottom:8px;
+    font-weight:bold;
+    color:#334155;
+}
+
+.input-group input,
+.input-group select{
+    width:100%;
+    padding:12px;
+    border:1px solid #cbd5e1;
+    border-radius:8px;
+    font-size:15px;
+}
+
+.resultados{
+    margin-top:30px;
+    background:#eff6ff;
+    padding:25px;
+    border-radius:12px;
+}
+
+.resultados h2{
+    margin-bottom:20px;
+    color:#2563eb;
+}
+
+.resultado-item{
+    margin-bottom:12px;
+    font-size:18px;
+}
+
+.btn{
+    width:100%;
+    padding:15px;
+    border:none;
+    background:#2563eb;
+    color:white;
+    font-size:17px;
+    border-radius:10px;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+.btn:hover{
+    background:#1d4ed8;
+}
+
+.select2-container .select2-selection--single{
+    height:45px !important;
+    border-radius:8px !important;
+    border:1px solid #cbd5e1 !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered{
+    line-height:45px !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow{
+    height:45px !important;
+}
+
+@media(max-width:768px){
+
+    .grid{
+        grid-template-columns:1fr;
+    }
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>
+        <i class="fa-solid fa-money-bill-wave"></i>
+        Sistema de Pagos
+    </h1>
+
+    <form action="guardar_pago.php" method="POST">
+
+        <div class="grid">
+
+            <!-- ESTUDIANTE -->
+            <div class="input-group">
+
+                <label>Seleccione Estudiante</label>
+
+                <select name="estudiante_id" id="estudiante" required>
+
+                    <option value="">Buscar estudiante...</option>
+
+                    <?php
+
+                    include("conexion.php");
+
+                    $consulta = mysqli_query($conexion, "
+                        SELECT id, nombre, cedula
+                        FROM estudiantes
+                        ORDER BY nombre ASC
+                    ");
+
+                    while ($fila = mysqli_fetch_assoc($consulta)) {
+
+                        ?>
+
+                        <option value="<?php echo $fila['id']; ?>">
+
+                            <?php echo htmlspecialchars($fila['nombre']); ?>
+                            -
+                            <?php echo htmlspecialchars($fila['cedula']); ?>
+
+                        </option>
+
+                        <?php
+                    }
+
+                    ?>
+
+                </select>
+
+            </div>
+
+            <!-- LICENCIA -->
+            <div class="input-group">
+
+                <label>Tipo de Licencia</label>
+
+                <select 
+                    name="licencia_id"
+                    id="licencia"
+                    onchange="calcularPago()"
+                    required
+                >
+
+                    <option value="">Seleccione licencia</option>
+
+                    <?php
+
+                    $licencias = mysqli_query($conexion, "
+                        SELECT id, tipo, valor
+                        FROM licencias
+                    ");
+
+                    while ($lic = mysqli_fetch_assoc($licencias)) {
+
+                        ?>
+
+                        <option 
+                            value="<?php echo $lic['id']; ?>"
+                            data-valor="<?php echo $lic['valor']; ?>"
+                        >
+
+                            Licencia <?php echo htmlspecialchars($lic['tipo']); ?>
+                            -
+                            $<?php echo number_format($lic['valor'],2); ?>
+
+                        </option>
+
+                        <?php
+                    }
+
+                    ?>
+
+                </select>
+
+            </div>
+
+        </div>
+
+        <!-- DATOS -->
+        <div class="grid">
+
+            <div class="input-group">
+
+                <label>Matrícula</label>
+
+                <input 
+                    type="number"
+                    id="matricula"
+                    value="50"
+                    onchange="calcularPago()"
+                >
+
+            </div>
+
+            <div class="input-group">
+
+                <label>Descuento (%)</label>
+
+                <input 
+                    type="number"
+                    id="descuento"
+                    value="0"
+                    onchange="calcularPago()"
+                >
+
+            </div>
+
+        </div>
+
+        <!-- RESULTADOS -->
+        <div class="resultados">
+
+            <h2>Resumen de Pago</h2>
+
+            <div class="resultado-item">
+                Curso:
+                $<span id="valorCurso">0.00</span>
+            </div>
+
+            <div class="resultado-item">
+                Matrícula:
+                $<span id="valorMatricula">50.00</span>
+            </div>
+
+            <div class="resultado-item">
+                Descuento:
+                $<span id="valorDescuento">0.00</span>
+            </div>
+
+            <hr style="margin:15px 0;">
+
+            <div class="resultado-item">
+                <strong>
+                    Total a Pagar:
+                    $<span id="total">0.00</span>
+                </strong>
+            </div>
+
+        </div>
+
+        <br>
+
+        <input 
+            type="hidden"
+            name="total_pago"
+            id="totalInput"
+        >
+
+        <button type="submit" class="btn">
+
+            <i class="fa-solid fa-floppy-disk"></i>
+            Guardar Pago
+
+        </button>
+
+    </form>
+
+</div>
+
+<!-- JQUERY -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- SELECT2 -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+
+$(document).ready(function(){
+
+    $('#estudiante').select2({
+        placeholder: "Buscar estudiante...",
+        allowClear: true,
+        width:'100%'
+    });
+
+});
+
+function calcularPago(){
+
+    let licencia = document.getElementById("licencia");
+
+    let valorCurso = licencia.options[
+        licencia.selectedIndex
+    ].getAttribute("data-valor");
+
+    valorCurso = parseFloat(valorCurso || 0);
+
+    let matricula = parseFloat(
+        document.getElementById("matricula").value || 0
+    );
+
+    let descuento = parseFloat(
+        document.getElementById("descuento").value || 0
+    );
+
+    let subtotal = valorCurso + matricula;
+
+    let valorDescuento = subtotal * (descuento / 100);
+
+    let total = subtotal - valorDescuento;
+
+    document.getElementById("valorCurso").innerText =
+        valorCurso.toFixed(2);
+
+    document.getElementById("valorMatricula").innerText =
+        matricula.toFixed(2);
+
+    document.getElementById("valorDescuento").innerText =
+        valorDescuento.toFixed(2);
+
+    document.getElementById("total").innerText =
+        total.toFixed(2);
+
+    document.getElementById("totalInput").value =
+        total.toFixed(2);
+}
+
+// CALCULAR AL CARGAR
+calcularPago();
+
+</script>
+
+</body>
+</html>
